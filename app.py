@@ -1,30 +1,20 @@
 import streamlit as st
 import pandas as pd
 import joblib
-import traceback
 
 st.set_page_config(page_title="Car Price Prediction")
 
-st.title("🚗 Car Price Prediction using Stacking Regression")
+@st.cache_resource
+def load_model():
+    return joblib.load("models/stacking_regressor.pkl")
 
-# Load model safely
-try:
-    model = joblib.load("models/stacking_regressor.pkl")
-    st.success("Model loaded successfully!")
-except Exception as e:
-    st.error("Failed to load model.")
-    st.code(traceback.format_exc())
-    st.stop()
+model = load_model()
 
-# Input Fields
-vehicle_age = st.number_input("Vehicle Age", min_value=0, max_value=30, value=5)
+st.title("🚗 Car Price Prediction")
+st.write("Stacking Regression using CarDekho Dataset")
 
-km_driven = st.number_input(
-    "KM Driven",
-    min_value=0,
-    max_value=500000,
-    value=50000
-)
+vehicle_age = st.number_input("Vehicle Age", 0, 30, 5)
+km_driven = st.number_input("KM Driven", 0, 500000, 50000)
 
 seller_type = st.selectbox(
     "Seller Type",
@@ -41,39 +31,15 @@ transmission_type = st.selectbox(
     ["Manual", "Automatic"]
 )
 
-mileage = st.number_input(
-    "Mileage",
-    min_value=0.0,
-    max_value=50.0,
-    value=20.0
-)
-
-engine = st.number_input(
-    "Engine (CC)",
-    min_value=500,
-    max_value=5000,
-    value=1200
-)
-
-max_power = st.number_input(
-    "Max Power",
-    min_value=20.0,
-    max_value=500.0,
-    value=80.0
-)
-
-seats = st.number_input(
-    "Seats",
-    min_value=2,
-    max_value=10,
-    value=5
-)
+mileage = st.number_input("Mileage", 0.0, 50.0, 20.0)
+engine = st.number_input("Engine", 500, 5000, 1200)
+max_power = st.number_input("Max Power", 20.0, 500.0, 80.0)
+seats = st.number_input("Seats", 2, 10, 5)
 
 brand = st.text_input("Brand", "Maruti")
 model_name = st.text_input("Model", "Alto")
 car_name = st.text_input("Car Name", "Maruti Alto")
 
-# Predict
 if st.button("Predict Price"):
 
     input_df = pd.DataFrame({
@@ -91,13 +57,8 @@ if st.button("Predict Price"):
         "seats": [seats]
     })
 
-    try:
-        prediction = model.predict(input_df)[0]
+    prediction = model.predict(input_df)[0]
 
-        st.success(
-            f"Estimated Selling Price: ₹ {prediction:,.0f}"
-        )
-
-    except Exception as e:
-        st.error(f"Prediction Error: {e}")
-        st.code(traceback.format_exc())
+    st.success(
+        f"Estimated Selling Price: ₹ {prediction:,.0f}"
+    )
